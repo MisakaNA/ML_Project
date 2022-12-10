@@ -72,3 +72,40 @@ class Retinaface(object):
     def get_pred(self, photo):
         preds = self.retinaface(photo, training=False)
         return preds
+
+    def get_FPS(self, image, test_interval):
+        # ---------------------------------------------------#
+        #   把图像转换成numpy的形式
+        # ---------------------------------------------------#
+        image = np.array(image, np.float32)
+        # ---------------------------------------------------#
+        #   计算输入图片的高和宽
+        # ---------------------------------------------------#
+        im_height, im_width, _ = np.shape(image)
+        # ---------------------------------------------------------#
+        #   letterbox_image可以给图像增加灰条，实现不失真的resize
+        # ---------------------------------------------------------#
+        if self.letterbox_image:
+            image = letterbox_image(image, [self.input_shape[1], self.input_shape[0]])
+        else:
+            self.anchors = Anchors(self.cfg, image_size=(im_height, im_width)).get_anchors()
+        # ---------------------------------------------------------#
+        #   图片预处理，归一化。
+        # ---------------------------------------------------------#
+        photo = np.expand_dims(preprocess_input(image), 0)
+
+        t1 = time.time()
+        for _ in range(test_interval):
+            # ---------------------------------------------------------#
+            #   传入网络进行预测
+            # ---------------------------------------------------------#
+            preds = self.get_pred(photo)
+            preds = [pred.numpy() for pred in preds]
+            # ---------------------------------------------------------#
+            #   将预测结果进行解码
+            # ---------------------------------------------------------#
+            results = self.bbox_util.detection_out(preds, self.anchors, confidence_threshold=self.confidence)
+
+        t2 = time.time()
+        tact_time = (t2 - t1)
+        return tact_time
