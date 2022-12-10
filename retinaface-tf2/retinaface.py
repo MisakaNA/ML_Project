@@ -16,8 +16,8 @@ from utils.utils_bbox import BBoxUtility, retinaface_correct_boxes
 class Retinaface(object):
     _defaults = {
 
-        "model_path"        : 'model_data/retinaface_resnet50.h5',
-        "backbone"          : 'resnet50',
+        "model_path"        : 'model_data/retinaface_mobilenet025.h5',
+        "backbone"          : 'mobilenet',
         "confidence"        : 0.5,
         "nms_iou"           : 0.45,
         "input_shape"       : [640, 480, 3],
