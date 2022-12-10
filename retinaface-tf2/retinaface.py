@@ -10,7 +10,7 @@ from utils.anchors import Anchors
 from utils.config import cfg_mnet, cfg_re50
 from utils.utils import letterbox_image
 from utils.utils_bbox import BBoxUtility, retinaface_correct_boxes
-#ADHSA
+
 
 
 class Retinaface(object):
@@ -20,7 +20,7 @@ class Retinaface(object):
         "backbone"          : 'resnet50',
         "confidence"        : 0.5,
         "nms_iou"           : 0.45,
-        "input_shape"       : [1280, 1280, 3],
+        "input_shape"       : [640, 480, 3],
         "letterbox_image"   : True
     }
 
@@ -161,52 +161,52 @@ class Retinaface(object):
             cv2.circle(old_image, (b[11], b[12]), 1, (0, 255, 0), 4)
             cv2.circle(old_image, (b[13], b[14]), 1, (255, 0, 0), 4)
         return old_image
-        
+
     def get_FPS(self, image, test_interval):
-        #---------------------------------------------------#
+        # ---------------------------------------------------#
         #   把图像转换成numpy的形式
-        #---------------------------------------------------#
-        image       = np.array(image, np.float32)
-        #---------------------------------------------------#
+        # ---------------------------------------------------#
+        image = np.array(image, np.float32)
+        # ---------------------------------------------------#
         #   计算输入图片的高和宽
-        #---------------------------------------------------#
+        # ---------------------------------------------------#
         im_height, im_width, _ = np.shape(image)
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
         #   letterbox_image可以给图像增加灰条，实现不失真的resize
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
         if self.letterbox_image:
             image = letterbox_image(image, [self.input_shape[1], self.input_shape[0]])
         else:
             self.anchors = Anchors(self.cfg, image_size=(im_height, im_width)).get_anchors()
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
         #   图片预处理，归一化。
-        #---------------------------------------------------------#
-        photo   = np.expand_dims(preprocess_input(image), 0)
-        
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
+        photo = np.expand_dims(preprocess_input(image), 0)
+
+        # ---------------------------------------------------------#
         #   传入网络进行预测
-        #---------------------------------------------------------#
-        preds   = self.get_pred(photo)
-        preds   = [pred.numpy() for pred in preds]
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
+        preds = self.get_pred(photo)
+        preds = [pred.numpy() for pred in preds]
+        # ---------------------------------------------------------#
         #   将预测结果进行解码
-        #---------------------------------------------------------#
+        # ---------------------------------------------------------#
         results = self.bbox_util.detection_out(preds, self.anchors, confidence_threshold=self.confidence)
 
         t1 = time.time()
         for _ in range(test_interval):
-            #---------------------------------------------------------#
+            # ---------------------------------------------------------#
             #   传入网络进行预测
-            #---------------------------------------------------------#
-            preds   = self.get_pred(photo)
-            preds   = [pred.numpy() for pred in preds]
-            #---------------------------------------------------------#
+            # ---------------------------------------------------------#
+            preds = self.get_pred(photo)
+            preds = [pred.numpy() for pred in preds]
+            # ---------------------------------------------------------#
             #   将预测结果进行解码
-            #---------------------------------------------------------#
+            # ---------------------------------------------------------#
             results = self.bbox_util.detection_out(preds, self.anchors, confidence_threshold=self.confidence)
 
         t2 = time.time()
-        tact_time = (t2 - t1) / test_interval
+        tact_time = (t2 - t1)
         return tact_time
 
     #---------------------------------------------------#
