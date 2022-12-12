@@ -31,39 +31,23 @@ class Retinaface(object):
         else:
             return "Unrecognized attribute name '" + n + "'"
 
-    #---------------------------------------------------#
-    #   初始化Retinaface
-    #---------------------------------------------------#
     def __init__(self, **kwargs):
         self.__dict__.update(self._defaults)
         for name, value in kwargs.items():
             setattr(self, name, value)
-            
-        #---------------------------------------------------#
-        #   不同主干网络的config信息
-        #---------------------------------------------------#
+
         if self.backbone == "mobilenet":
             self.cfg = cfg_mnet
         else:
             self.cfg = cfg_re50
 
-        #---------------------------------------------------#
-        #   工具箱和先验框的生成
-        #---------------------------------------------------#
         self.bbox_util  = BBoxUtility(nms_thresh=self.nms_iou)
         self.anchors    = Anchors(self.cfg, image_size=(self.input_shape[0], self.input_shape[1])).get_anchors()
         self.generate()
 
-    #---------------------------------------------------#
-    #   载入模型
-    #---------------------------------------------------#
     def generate(self):
         model_path = os.path.expanduser(self.model_path)
         assert model_path.endswith('.h5'), 'tensorflow.keras model or weights must be a .h5 file.'
-
-        #-------------------------------#
-        #   载入模型与权值
-        #-------------------------------#
         self.retinaface = RetinaFace(self.cfg, self.backbone)
         self.retinaface.load_weights(self.model_path)
         print('{} model, anchors loaded.'.format(self.model_path))
